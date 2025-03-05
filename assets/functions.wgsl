@@ -4,26 +4,40 @@
 
 const PI: f32 = 3.14159;
 
-fn closest_wrapped_other_position(pos: vec2<f32>, other_pos: vec2<f32>, bounds: vec2<f32>) -> vec2<f32> {
+fn closest_wrapped_other_position(pos: vec3<f32>, other_pos: vec3<f32>, bounds: vec3<f32>) -> vec3<f32> {
     var other = other_pos;
+    var wrapped: vec3<f32>;
 
-    var wrapped: vec2<f32>;
+    // Wrapping en X
     if (other_pos.x > 0.) {
         wrapped.x = other.x - 2. * bounds.x;
     } else {
         wrapped.x = other.x + 2. * bounds.x;
     }
+
+    // Wrapping en Y
     if (other_pos.y > 0.) {
        wrapped.y = other.y - 2. * bounds.y;
     } else {
        wrapped.y = other.y + 2. * bounds.y;
     }
 
+    // Ajout du wrapping en Z
+    if (other_pos.z > 0.) {
+       wrapped.z = other.z - 2. * bounds.z;
+    } else {
+       wrapped.z = other.z + 2. * bounds.z;
+    }
+
+    // Choisir la coordonnée la plus proche pour chaque dimension
     if abs(pos.x - wrapped.x) < abs(pos.x - other.x) {
         other.x = wrapped.x;
     }
     if abs(pos.y - wrapped.y) < abs(pos.y - other.y) {
         other.y = wrapped.y;
+    }
+    if abs(pos.z - wrapped.z) < abs(pos.z - other.z) {
+        other.z = wrapped.z;
     }
 
     return other;
@@ -41,51 +55,54 @@ fn cell_count() -> u32 {
     return settings.cell_count.x * settings.cell_count.y;
 }
 
-fn cell_index(position: vec2<f32>) -> u32 {
-    let cell_2d = cell_index_2d(position);
-    let cell_index = cell_2d.x + cell_2d.y * settings.cell_count.x;
+fn cell_index(position: vec3<f32>) -> u32 {
+    let cell_3d = cell_index_3d(position);
+    // Index linéaire pour une grille 3D
+    let cell_index = cell_3d.x +
+                     cell_3d.y * settings.cell_count.x +
+                     cell_3d.z * settings.cell_count.x * settings.cell_count.y;
     return cell_index;
 }
 
-fn cell_index_2d(position: vec2<f32>) -> vec2<u32> {
-    // moving the position from [-bounds, bounds] to [0, 2 * bounds];
+fn cell_index_3d(position: vec3<f32>) -> vec3<u32> {
+    // Déplace la position de [-bounds, bounds] à [0, 2 * bounds]
     let p = settings.bounds + position;
-    return vec2<u32>(floor(p / settings.max_distance));
+    return vec3<u32>(floor(p / settings.max_distance));
 }
 
-fn surrounding_cells(position: vec2<f32>) -> array<u32, 9> {
-   let cell = cell_index_2d(position);
-   let cells = settings.cell_count;
-   let minus_x = rem_euclid(i32(cell.x) - 1, cells.x);
-   let minus_y = rem_euclid(i32(cell.y) - 1, cells.y) * cells.x;
-   let plus_x = (cell.x + 1) % cells.x;
-   let plus_y = ((cell.y + 1) % cells.y) * cells.x;
-   let middle_x = cell.x;
-   let middle_y = cell.y * cells.x;
+fn surrounding_cells(position: vec3<f32>) -> array<u32, 27> {
+    let cell = cell_index_3d(position);
+    let cells = settings.cell_count;
 
-   return array(
-        minus_x + minus_y,
-        middle_x + minus_y,
-        plus_x + minus_y,
-        minus_x + middle_y,
-        middle_x + middle_y,
-        plus_x + middle_y,
-        minus_x + plus_y,
-        middle_x + plus_y,
-        plus_x + plus_y,
-   );
-}
+    var result: array<u32, 27>;
+    var index = 0u;
 
-// This only works for [-1, modulo - 1].
-// Everywhere else isn't implemented because' wgsl % has some really weird
-// behaviour. -1 % 10 == -1, but if you instead use a runtime variable x that is equal to -1
-// then x % 10 == 5, with all types being i32.
-fn rem_euclid(n: i32, modulo: u32) -> u32 {
-    if (n == -1) {
-        return modulo - 1;
-    } else {
-        return u32(n);
+    for (var dx = -1; dx <= 1; dx++) {
+        for (var dy = -1; dy <= 1; dy++) {
+            for (var dz = -1; dz <= 1; dz++) {
+                // Utilisation de rem_euclid pour gérer correctement les indices négatifs
+                let x = rem_euclid(i32(cell.x) + dx, i32(cells.x));
+                let y = rem_euclid(i32(cell.y) + dy, i32(cells.y));
+                let z = rem_euclid(i32(cell.z) + dz, i32(cells.z));
+
+                // Calcul de l'index 1D à partir des coordonnées 3D
+                let cell_idx = x +
+                               y * i32(cells.x) +
+                               z * i32(cells.x) * i32(cells.y);
+
+                result[index] = u32(cell_idx);
+                index++;
+            }
+        }
     }
+
+    return result;
+}
+
+// Fonction rem_euclid améliorée pour WGSL
+fn rem_euclid(n: i32, modulo: i32) -> i32 {
+    let m = n % modulo;
+    return select(m + modulo, m, m >= 0);
 }
 
 fn acceleration(rmin: f32, dpos: vec2<f32>, a: f32) -> vec2<f32> {

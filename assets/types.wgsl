@@ -18,8 +18,8 @@ struct Particles {
 }
 
 struct Particle {
-    position: vec2<f32>,
-    velocity: vec2<f32>,
+    position: vec3<f32>,
+    velocity: vec3<f32>,
     color: u32,
     padding: u32,
 }
@@ -33,7 +33,7 @@ struct Settings {
     max_velocity: f32,
     velocity_half_life: f32,
     force_factor: f32,
-    bounds: vec2<f32>,
+    bounds: vec3<f32>,
     max_attractions: u32,
     acceleration_method: u32,
 
@@ -46,11 +46,13 @@ struct Settings {
     rgb: u32,
     rgb_speed: f32,
 
-    cell_count: vec2<u32>,
+    cell_count: vec3<u32>,
     seed: u32,
 
     color_count: u32,
     max_color_count: u32,
     colors: array<vec4<f32>, 16>,
     matrix: array<vec4<f32>, 5>,
+    sphere_resolution: u32,
+    use_lighting: u32,
 }

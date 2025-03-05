@@ -32,13 +32,30 @@ fn main() {
 
 fn setup(mut commands: Commands) {
     commands.spawn((
-        Camera2dBundle::default(),
-        CameraSettings {
-            pan_speed: 1.,
-            scroll_speed: 1.,
+        Camera3dBundle {
+            transform: Transform::from_xyz(0.0, 0.0, 30.0)  // Position plus éloignée
+                .looking_at(Vec3::ZERO, Vec3::Y),
+            ..default()
         },
+        CameraSettings::default(),
         ParticleCamera,
     ));
+
+    commands.spawn(DirectionalLightBundle {
+        directional_light: DirectionalLight {
+            color: Color::WHITE,
+            illuminance: 10000.0,
+            shadows_enabled: true,
+            ..default()
+        },
+        transform: Transform::from_xyz(4.0, 8.0, 4.0).looking_at(Vec3::ZERO, Vec3::Y),
+        ..default()
+    });
+
+    commands.insert_resource(AmbientLight {
+        color: Color::WHITE,
+        brightness: 0.3,
+    });
 
     let mut settings = SimulationSettings::default();
     settings.randomize_attractions();

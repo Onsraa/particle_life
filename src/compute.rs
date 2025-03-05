@@ -114,7 +114,7 @@ pub struct GpuSettings {
     pub rgb_speed: f32,
 
     // not setting, but info that the shaders need
-    pub cell_count: UVec2,
+    pub cell_count: UVec3,
     pub seed: u32,
 
     pub color_count: u32,
@@ -122,6 +122,8 @@ pub struct GpuSettings {
     pub colors: [Vec4; COLORS.len()],
     // This is actually a COLORS.len()xCOLORS.len() matrix of f32
     pub matrix: ColorMatrix,
+    pub sphere_resolution: u32,
+    use_lighting: u32,
 }
 
 #[derive(ShaderType, Clone, Copy)]
@@ -320,6 +322,8 @@ fn extract_particle_related_things(
         max_color_count: COLORS.len() as u32,
         colors,
         matrix,
+        sphere_resolution: settings.sphere_resolution,
+        use_lighting: if settings.use_lighting { 1 } else { 0 },
     };
     let mut buffer = UniformBuffer::from(gpu_settings);
     commands.insert_resource(gpu_settings);

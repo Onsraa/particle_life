@@ -33,8 +33,8 @@ pub enum Shape {
 
 #[derive(Component, ShaderType, Default, Debug, Clone, Copy)]
 pub struct Particle {
-    pub position: Vec2,
-    pub velocity: Vec2,
+    pub position: Vec3,
+    pub velocity: Vec3,
     pub color: ColorId,
     pub padding: u32,
 }
@@ -75,7 +75,7 @@ pub struct SimulationSettings {
     // is based on the assumption that only the cells surroundingthe particles
     // cell can affect the particle, which is the case when each cell has max_distance
     // width and height.
-    bounds: UVec2,
+    bounds: UVec3,
     max_distance: u32,
     pub min_distance: u32,
     pub max_velocity: f32,
@@ -94,13 +94,19 @@ pub struct SimulationSettings {
     pub circle_corners: u32,
     pub rgb: bool,
     pub rgb_speed: f32,
+    pub sphere_resolution: u32,
+    pub use_lighting: bool,
+    pub ambient_intensity: f32,
+    pub diffuse_intensity: f32,
+    pub specular_intensity: f32,
+    pub shininess: f32,
 }
 
 impl Default for SimulationSettings {
     fn default() -> Self {
         Self {
             particle_count: 9000,
-            bounds: UVec2::new(3600, 2100),
+            bounds: UVec3::new(3600, 2100, 1),
             max_distance: 250,
             min_distance: 50,
             max_velocity: 1000.0,
@@ -120,6 +126,13 @@ impl Default for SimulationSettings {
             circle_corners: 16,
             rgb: false,
             rgb_speed: 1.,
+
+            sphere_resolution: 16,
+            use_lighting: true,
+            ambient_intensity: 0.3,
+            diffuse_intensity: 0.7,
+            specular_intensity: 0.5,
+            shininess: 32.0,
         }
     }
 }
@@ -154,19 +167,19 @@ impl SimulationSettings {
         self.update_bounds(self.bounds);
     }
 
-    pub fn bounds(&self) -> UVec2 {
+    pub fn bounds(&self) -> UVec3 {
         self.bounds
     }
 
-    pub fn update_bounds(&mut self, bounds: UVec2) {
+    pub fn update_bounds(&mut self, bounds: UVec3) {
         // round to closest multiple of max_distance
-        self.bounds = ((bounds.as_vec2() / self.max_distance as f32)
+        self.bounds = ((bounds.as_vec3() / self.max_distance as f32)
             .round()
-            .as_uvec2())
+            .as_uvec3())
             * self.max_distance;
     }
 
-    pub fn cell_count(&self) -> UVec2 {
+    pub fn cell_count(&self) -> UVec3 {
         // bounds are [-bounds, bounds]
         2 * self.bounds / self.max_distance
     }

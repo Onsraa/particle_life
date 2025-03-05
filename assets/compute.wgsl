@@ -52,8 +52,12 @@ fn initialize_particles(@builtin(global_invocation_id) global_id: vec3<u32>) {
     var index = settings.initialized_particles + global_id.x;
 
     let p = &particles.particles[index];
-    (*p).velocity = vec2<f32>(0.);
-    (*p).position = (2. * rand_vec2f(&index) - 1.) * settings.bounds;
+    (*p).velocity = vec3<f32>(0.0, 0.0, 0.0);
+    (*p).position = vec3<f32>(
+        (rand_vec2f(&seed).x * 2.0 - 1.0) * settings.bounds.x,
+        (rand_vec2f(&seed).y * 2.0 - 1.0) * settings.bounds.y,
+        (rand_vec2f(&(seed + 1u)).x * 2.0 - 1.0) * settings.bounds.z
+    );
     (*p).color = rand_range_u(settings.color_count, &index);
 }
 
