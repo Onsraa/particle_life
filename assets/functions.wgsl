@@ -6,30 +6,24 @@ const PI: f32 = 3.14159;
 
 fn closest_wrapped_other_position(pos: vec3<f32>, other_pos: vec3<f32>, bounds: vec3<f32>) -> vec3<f32> {
     var other = other_pos;
-    var wrapped: vec3<f32>;
 
-    // Wrapping en X
+    var wrapped: vec3<f32>;
     if (other_pos.x > 0.) {
         wrapped.x = other.x - 2. * bounds.x;
     } else {
         wrapped.x = other.x + 2. * bounds.x;
     }
-
-    // Wrapping en Y
     if (other_pos.y > 0.) {
        wrapped.y = other.y - 2. * bounds.y;
     } else {
        wrapped.y = other.y + 2. * bounds.y;
     }
-
-    // Ajout du wrapping en Z
     if (other_pos.z > 0.) {
        wrapped.z = other.z - 2. * bounds.z;
     } else {
        wrapped.z = other.z + 2. * bounds.z;
     }
 
-    // Choisir la coordonnée la plus proche pour chaque dimension
     if abs(pos.x - wrapped.x) < abs(pos.x - other.x) {
         other.x = wrapped.x;
     }
@@ -105,7 +99,7 @@ fn rem_euclid(n: i32, modulo: i32) -> i32 {
     return select(m + modulo, m, m >= 0);
 }
 
-fn acceleration(rmin: f32, dpos: vec2<f32>, a: f32) -> vec2<f32> {
+fn acceleration(rmin: f32, dpos: vec3<f32>, a: f32) -> vec3<f32> {
     switch (settings.acceleration_method) {
         case 0u: { return acceleration1(rmin, dpos, a); }
         case 1u: { return acceleration2(rmin, dpos, a); }
@@ -117,7 +111,7 @@ fn acceleration(rmin: f32, dpos: vec2<f32>, a: f32) -> vec2<f32> {
     }
 }
 
-fn acceleration1(rmin: f32, dpos: vec2<f32>, a: f32) -> vec2<f32> {
+fn acceleration1(rmin: f32, dpos: vec3<f32>, a: f32) -> vec3<f32> {
     let dist = length(dpos);
     var force: f32;
     if (dist < rmin) {
@@ -129,35 +123,38 @@ fn acceleration1(rmin: f32, dpos: vec2<f32>, a: f32) -> vec2<f32> {
     return dpos * force / dist;
 }
 
-// TODO: make these more efficient by not reusing acceleration1
-fn acceleration2(rmin: f32, dpos: vec2<f32>, a: f32) -> vec2<f32> {
+fn acceleration2(rmin: f32, dpos: vec3<f32>, a: f32) -> vec3<f32> {
     let dist = length(dpos);
     return acceleration1(rmin, dpos, a) / dist;
 }
 
-fn acceleration3(rmin: f32, dpos: vec2<f32>, a: f32) -> vec2<f32> {
+fn acceleration3(rmin: f32, dpos: vec3<f32>, a: f32) -> vec3<f32> {
     let dist = length(dpos);
     return acceleration1(rmin, dpos, a) / (dist * dist);
 }
 
-fn acceleration90_(rmin: f32, dpos: vec2<f32>, a: f32) -> vec2<f32> {
+fn acceleration90_(rmin: f32, dpos: vec3<f32>, a: f32) -> vec3<f32> {
     let dist = length(dpos);
     var force = a * (1. - dist);
-    return vec2<f32>(-dpos.y, dpos.x) * force / dist;
+
+    // Rotation 90° en 3D (sur le plan XY, Z reste inchangé)
+    return vec3<f32>(-dpos.y, dpos.x, dpos.z) * force / dist;
 }
 
-fn acceleration_attr(rmin: f32, dpos: vec2<f32>, a: f32) -> vec2<f32> {
+fn acceleration_attr(rmin: f32, dpos: vec3<f32>, a: f32) -> vec3<f32> {
    let dist = length(dpos);
    var force = 1. - dist;
    let angle = -a * PI;
-   return vec2<f32>(
+
+   // Rotation 3D autour de l'axe Z
+   return vec3<f32>(
       cos(angle) * dpos.x + sin(angle) * dpos.y,
-       -sin(angle) * dpos.x +cos(angle) * dpos.y,
-   ) * force
-       / dist;
+      -sin(angle) * dpos.x + cos(angle) * dpos.y,
+      dpos.z
+   ) * force / dist;
 }
 
-fn planets(rmin: f32, dpos: vec2<f32>, a: f32) -> vec2<f32> {
+fn planets(rmin: f32, dpos: vec3<f32>, a: f32) -> vec3<f32> {
     let dist = max(0.01, length(dpos));
     return dpos * 0.01 / (dist * dist * dist);
 }

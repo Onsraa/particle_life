@@ -50,14 +50,19 @@ fn initialize_particles(@builtin(global_invocation_id) global_id: vec3<u32>) {
     }
 
     var index = settings.initialized_particles + global_id.x;
+    // Créer une seed différente pour la coordonnée Z
+    var seed_z = index ^ 0xABCDEF00u; // XOR avec une constante pour une valeur différente
 
     let p = &particles.particles[index];
     (*p).velocity = vec3<f32>(0.0, 0.0, 0.0);
+
+    // Utiliser des seeds différentes pour chaque dimension
     (*p).position = vec3<f32>(
-        (rand_vec2f(&seed).x * 2.0 - 1.0) * settings.bounds.x,
-        (rand_vec2f(&seed).y * 2.0 - 1.0) * settings.bounds.y,
-        (rand_vec2f(&(seed + 1u)).x * 2.0 - 1.0) * settings.bounds.z
+        (2.0 * rand_vec2f(&index).x - 1.0) * settings.bounds.x,
+        (2.0 * rand_vec2f(&index).y - 1.0) * settings.bounds.y,
+        (2.0 * rand_vec2f(&seed_z).x - 1.0) * settings.bounds.z
     );
+
     (*p).color = rand_range_u(settings.color_count, &index);
 }
 
@@ -67,9 +72,18 @@ fn randomize_positions(@builtin(global_invocation_id) global_id: vec3<u32>) {
         return;
     }
 
-    var seed =  settings.seed + global_id.x;
+    var seed = settings.seed + global_id.x;
+    // Créer une seed différente pour la coordonnée Z
+    var seed_z = seed ^ 0xABCDEF00u;
+
     let p = &particles.particles[global_id.x];
-    (*p).position = (2. * rand_vec2f(&seed) - 1.) * settings.bounds;
+
+    // Générer chaque composante séparément
+    (*p).position = vec3<f32>(
+        (2.0 * rand_vec2f(&seed).x - 1.0) * settings.bounds.x,
+        (2.0 * rand_vec2f(&seed).y - 1.0) * settings.bounds.y,
+        (2.0 * rand_vec2f(&seed_z).x - 1.0) * settings.bounds.z
+    );
 }
 
 
@@ -144,12 +158,17 @@ fn update_position(@builtin(global_invocation_id) global_id: vec3<u32>) {
     let p = particles.particles[global_id.x];
     if p.position.x > settings.bounds.x {
         (*particle).position.x -= 2. * settings.bounds.x;
-        } else if p.position.x < -settings.bounds.x {
+    } else if p.position.x < -settings.bounds.x {
         (*particle).position.x += 2. * settings.bounds.x;
     }
     if p.position.y > settings.bounds.y {
         (*particle).position.y -= 2. * settings.bounds.y;
-        } else if p.position.y < -settings.bounds.y {
+    } else if p.position.y < -settings.bounds.y {
         (*particle).position.y += 2. * settings.bounds.y;
+    }
+    if p.position.z > settings.bounds.z {
+        (*particle).position.z -= 2. * settings.bounds.z;
+    } else if p.position.z < -settings.bounds.z {
+        (*particle).position.z += 2. * settings.bounds.z;
     }
 }

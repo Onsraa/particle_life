@@ -27,8 +27,9 @@ pub const COLORS: &[Srgba] = &[
 #[derive(Debug, Default, Serialize, Deserialize, Clone, Copy, PartialEq)]
 pub enum Shape {
     #[default]
-    Circle = 0,
-    Square = 1,
+    Sphere = 0, // Anciennement Circle
+    #[deprecated]
+    Cube = 1,   // Anciennement Square, maintenant déprécié
 }
 
 #[derive(Component, ShaderType, Default, Debug, Clone, Copy)]
@@ -96,10 +97,6 @@ pub struct SimulationSettings {
     pub rgb_speed: f32,
     pub sphere_resolution: u32,
     pub use_lighting: bool,
-    pub ambient_intensity: f32,
-    pub diffuse_intensity: f32,
-    pub specular_intensity: f32,
-    pub shininess: f32,
 }
 
 impl Default for SimulationSettings {
@@ -122,17 +119,13 @@ impl Default for SimulationSettings {
                 .collect(),
 
             particle_size: 4.,
-            shape: Shape::Circle,
+            shape: Shape::Sphere,
             circle_corners: 16,
             rgb: false,
             rgb_speed: 1.,
 
             sphere_resolution: 16,
             use_lighting: true,
-            ambient_intensity: 0.3,
-            diffuse_intensity: 0.7,
-            specular_intensity: 0.5,
-            shininess: 32.0,
         }
     }
 }

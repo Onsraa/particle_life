@@ -133,13 +133,13 @@ impl render_graph::ViewNode for DrawParticleNode {
             pass.set_bind_group(0, &bind_groups[0], &[uniform_offset.offset]);
             pass.set_pipeline(pipeline);
             match settings.shape {
-                Shape::Circle => {
+                Shape::Sphere => {
                     pass.draw(
                         0..settings.circle_corners * 3,
                         0..settings.particle_count as u32,
                     );
                 }
-                Shape::Square => {
+                Shape::Cube => {
                     pass.draw(0..6, 0..settings.particle_count as u32);
                 }
             }

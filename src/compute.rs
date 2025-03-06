@@ -323,7 +323,7 @@ fn extract_particle_related_things(
         colors,
         matrix,
         sphere_resolution: settings.sphere_resolution,
-        use_lighting: if settings.use_lighting { 1 } else { 0 },
+        use_lighting: if settings.use_lighting { 1u32 } else { 0u32 },
     };
     let mut buffer = UniformBuffer::from(gpu_settings);
     commands.insert_resource(gpu_settings);

@@ -206,11 +206,6 @@ pub fn ui(
                     .clamp_to_range(false),
             );
 
-            ui.horizontal(|ui| {
-                ui.selectable_value(&mut settings.shape, Shape::Circle, "Circle");
-                ui.selectable_value(&mut settings.shape, Shape::Square, "Square");
-            });
-
             // settings.rgb
             ui.checkbox(&mut settings.rgb, "RGB");
             ui.add(egui::Slider::new(&mut settings.rgb_speed, 0.1..=10.).text("RGB speed"));
@@ -228,6 +223,19 @@ pub fn ui(
                     }
                 }
             }
+            ui.add_space(10.);
+
+            ui.collapsing("Rendering Settings", |ui| {
+                // Taille des particules et paramètres de rendu
+                ui.add(
+                    egui::Slider::new(&mut settings.particle_size, 1.0..=100.0)
+                        .text("particle size")
+                        .clamp_to_range(false),
+                );
+
+                // Paramètres d'éclairage (nouveau pour 3D)
+                ui.checkbox(&mut settings.use_lighting, "Enable lighting");
+            });
 
             ui.add_space(10.);
 
