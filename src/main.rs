@@ -33,7 +33,7 @@ fn main() {
 fn setup(mut commands: Commands) {
     commands.spawn((
         Camera3dBundle {
-            transform: Transform::from_xyz(0.0, 0.0, 50.0)  // Position plus éloignée
+            transform: Transform::from_xyz(0.0, 0.0, 10.0)  // Position plus éloignée
                 .looking_at(Vec3::ZERO, Vec3::Y),
             ..default()
         },
@@ -44,7 +44,7 @@ fn setup(mut commands: Commands) {
     commands.spawn(DirectionalLightBundle {
         directional_light: DirectionalLight {
             color: Color::WHITE,
-            illuminance: 10000.0,
+            illuminance: 100000.0,
             shadows_enabled: true,
             ..default()
         },
@@ -54,7 +54,7 @@ fn setup(mut commands: Commands) {
 
     commands.insert_resource(AmbientLight {
         color: Color::WHITE,
-        brightness: 0.3,
+        brightness: 1000.0,
     });
 
     let mut settings = SimulationSettings::default();
